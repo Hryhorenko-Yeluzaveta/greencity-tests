@@ -1,2 +1,16 @@
-# greencity-tests
-Test cases for the GreenCity Events page created as part of a Test Automation &amp; Quality Control course.
+# Тестування сторінки подій проєкту GreenCity 🧪
+
+## 📝 Короткий опис завдання
+Цей репозиторій створено в рамках виконання практичного домашнього завдання з курсу тестування програмного забезпечення (SoftServe Crash Course: Test Automation & Quality Control).
+
+У цьому репозиторії міститься набір тест-кейсів (включно з позитивними та негативними сценаріями), оформлених у форматі `.md`.
+
+## 🔗 Посилання на сторінку, що тестується
+[GreenCity Events Page](https://www.greencity.cx.ua/#/greenCity/events)
+
+## 📂 Структура репозиторію
+* `README.md` — інформація про проєкт та завдання.
+* `test-cases/events-page-tests.md` — документ із детально описаними тест-кейсами (ID 1-4).
+
+## 🤓 Автор роботи
+**Yelyzaveta Hryhorenko**
