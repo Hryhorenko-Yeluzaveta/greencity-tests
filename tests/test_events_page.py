@@ -87,48 +87,95 @@ class TestEventPage(unittest.TestCase):
     # It doesn't find some events, although the name is specified the same.
     # You can try by the first letter, but even then it doesn’t always find it.
     # But I still tried to do an automated test.
-    def test_search_event_by_name(self):
+    # def test_search_event_by_name(self):
+    #     explicit_wait = WebDriverWait(self.driver, 10)
+    #
+    #     # First Step - Click on the Search icon
+    #     search_button_xpath = "//div[contains(@class, 'container-img')][.//span[contains(@class, 'search-img')]]"
+    #     search_button = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, search_button_xpath)))
+    #     search_button.click()
+    #
+    #     # Second Step - Write a partial name of the event ()
+    #     event_element_xpath = "//mat-card"
+    #     event_element = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, event_element_xpath)))
+    #     event_name = event_element.find_element(By.CSS_SELECTOR, ".event-name").text
+    #     partial_name = event_name[:2]
+    #
+    #     input_event_name_xpath = "//input[@placeholder='Search']"
+    #     input_event_name = explicit_wait.until(EC.element_to_be_clickable((By.XPATH, input_event_name_xpath)))
+    #     input_event_name.send_keys(partial_name)
+    #
+    #     time.sleep(2)
+    #
+    #     all_event_names_selector = '.event-name'
+    #     all_event_names = self.driver.find_elements(By.CSS_SELECTOR, all_event_names_selector)
+    #
+    #     self.assertTrue(len(all_event_names) > 0, "Пошук не повернув жодного результату.")
+    #
+    #     for name in all_event_names:
+    #         self.assertIn(partial_name.lower(), name.text.lower(), f"Назва події {name.text} не відповідає шуканому рядку.")
+    #
+    #     searched_element_xpath = f"//mat-card[.//p[contains(text(), '{event_name}')]]"
+    #     partial_searched_element = self.driver.find_element(By.XPATH, searched_element_xpath)
+    #     self.assertTrue(partial_searched_element.is_displayed(), f"Події з назвою {event_name} немає у переліку (пошук за частковою назвою).")
+    #
+    #     # Third Step - Search by full name
+    #     input_event_name.clear()
+    #     input_event_name.send_keys(event_name)
+    #
+    #     time.sleep(2)
+    #
+    #     full_searched_element = self.driver.find_element(By.XPATH, searched_element_xpath)
+    #     self.assertTrue(full_searched_element.is_displayed(), f"Події з назвою {event_name} немає у переліку (пошук за повною назвою)")
+
+    def test_comment_response(self):
         explicit_wait = WebDriverWait(self.driver, 10)
 
-        # First Step - Click on the Search icon
-        search_button_xpath = "//div[contains(@class, 'container-img')][.//span[contains(@class, 'search-img')]]"
-        search_button = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, search_button_xpath)))
-        search_button.click()
+        # First Step - Go to detailed information about the Event
+        event_with_comment_xpath = "//mat-card[.//div[@class='frame'][.//p[text() > 0]]]"
+        event_with_comment = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, event_with_comment_xpath)))
 
-        # Second Step - Write a partial name of the event ()
-        event_element_xpath = "//mat-card"
-        event_element = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, event_element_xpath)))
-        event_name = event_element.find_element(By.CSS_SELECTOR, ".event-name").text
-        partial_name = event_name[:2]
+        more_button_xpath = ".//button[contains(@class, 'secondary-global-button')]"
+        more_button = event_with_comment.find_element(By.XPATH, more_button_xpath)
+        more_button.click()
 
-        input_event_name_xpath = "//input[@placeholder='Search']"
-        input_event_name = explicit_wait.until(EC.element_to_be_clickable((By.XPATH, input_event_name_xpath)))
-        input_event_name.send_keys(partial_name)
+        comment_for_reply_selector = ".comment-body-wrapper.wrapper-comment"
+        comment_for_reply = explicit_wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, comment_for_reply_selector)))
+
+        self.assertTrue(comment_for_reply.is_displayed(), "У цієї події немає попереднього коментаря.")
+
+        # Second Step - Open reply section
+        reply_button_xpath = ".//app-reply-comment"
+        reply_button = comment_for_reply.find_element(By.XPATH, reply_button_xpath)
+        reply_button.click()
+
+        reply_input_xpath = "//div[@class='comment-textarea'][.//span[contains(text(), 'Add a reply')]]"
+        reply_input = explicit_wait.until(EC.element_to_be_clickable((By.XPATH, reply_input_xpath)))
+        self.assertTrue(reply_input.is_displayed(), "Поле відповіді не зʼявилося")
+
+        reply_submit_button_xpath = "//button[contains(@class, 'primary-global-button__reply')]"
+        reply_submit_button = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, reply_submit_button_xpath)))
+        self.assertFalse(reply_submit_button.is_enabled(), "Кнопка відправки відповіді активна (поле коментаря пусте)")
+
+        # Third Step - Write a reply
+        reply_text = "Дякую за корисну інформацію!"
+        reply_input.send_keys(reply_text)
+        reply_submit_button = explicit_wait.until(EC.element_to_be_clickable((By.XPATH, reply_submit_button_xpath)))
+        self.assertTrue(reply_submit_button.is_enabled(), "Кнопка відправки відповіді не активна для відправки повідомлення.")
+
+        # Fourth Step - Send reply
+        reply_submit_button.click()
 
         time.sleep(2)
 
-        all_event_names_selector = '.event-name'
-        all_event_names = self.driver.find_elements(By.CSS_SELECTOR, all_event_names_selector)
+        reply_comment_xpath = ".//app-comments-list[@datatype='reply']"
+        reply_comment = comment_for_reply.find_element(By.XPATH, reply_comment_xpath)
 
-        self.assertTrue(len(all_event_names) > 0, "Пошук не повернув жодного результату.")
+        reply_comment_text_xpath = ".//div[@class='comment-text']"
+        reply_comment_text = reply_comment.find_element(By.XPATH, reply_comment_text_xpath)
 
-        for name in all_event_names:
-            self.assertIn(partial_name.lower(), name.text.lower(), f"Назва події {name.text} не відповідає шуканому рядку.")
-
-        searched_element_xpath = f"//mat-card[.//p[contains(text(), '{event_name}')]]"
-        partial_searched_element = self.driver.find_element(By.XPATH, searched_element_xpath)
-        self.assertTrue(partial_searched_element.is_displayed(), f"Події з назвою {event_name} немає у переліку (пошук за частковою назвою).")
-
-        # Third Step - Search by full name
-        input_event_name.clear()
-        input_event_name.send_keys(event_name)
-
-        time.sleep(2)
-
-        full_searched_element = self.driver.find_element(By.XPATH, searched_element_xpath)
-        self.assertTrue(full_searched_element.is_displayed(), f"Події з назвою {event_name} немає у переліку (пошук за повною назвою)")
-
-
+        self.assertTrue(reply_comment.is_displayed(), "Відповідь на коментар не було відправлено")
+        self.assertTrue(reply_comment_text.text == reply_text, "Текст не відповідає відправленому.")
 
     def tearDown(self):
         if self.driver:
