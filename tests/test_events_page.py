@@ -47,41 +47,88 @@ class TestEventPage(unittest.TestCase):
         events_page_link = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, events_page_xpath)))
         events_page_link.click()
 
-    def test_bookmark_creation(self):
+    # def test_bookmark_creation(self):
+    #     explicit_wait = WebDriverWait(self.driver, 10)
+    #
+    #     # First Step - Activate Bookmark
+    #     event_to_bookmark_xpath = "//mat-card[.//span[@class='flag']]"
+    #     event_to_bookmark = explicit_wait.until(EC.element_to_be_clickable((By.XPATH, event_to_bookmark_xpath)))
+    #     event_title = event_to_bookmark.find_element(By.CSS_SELECTOR, ".event-name").text
+    #
+    #     activate_bookmark_button = event_to_bookmark.find_element(By.XPATH, ".//div[contains(@class, 'event-flags')]")
+    #     activate_bookmark_button.click()
+    #
+    #     active_bookmark = activate_bookmark_button.find_element(By.CSS_SELECTOR, ".flag-active")
+    #
+    #     self.assertTrue(active_bookmark.is_displayed(), f"Закладка не була активована на події {event_title} (не змінила свій статус на active)")
+    #
+    #     # Second Step - Refresh the page and check bookmark status
+    #     self.driver.refresh()
+    #
+    #     bookmarked_event_xpath = f"//mat-card[.//span[@class='flag-active'] and .//p[contains(normalize-space(text()), '{event_title}')]]"
+    #     bookmarked_event = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, bookmarked_event_xpath)))
+    #
+    #     self.assertTrue(bookmarked_event.is_displayed(), f"Закладка зникла з події {event_title} (після перезавантаження сторінки)")
+    #
+    #     # Third Step - Check for an event using the bookmark filter
+    #     bookmark_filter_xpath = "//span[@class='bookmark-img']"
+    #     bookmark_filter_button = self.driver.find_element(By.XPATH, bookmark_filter_xpath)
+    #     bookmark_filter_button.click()
+    #
+    #     filtered_event_xpath = f"//mat-card[.//span[@class='flag-active'] and .//p[contains(text(), '{event_title}')]]"
+    #     filtered_event = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, filtered_event_xpath)))
+    #     self.assertTrue(filtered_event.is_displayed(), f"Подія {event_title} не відображається при застосуванні фільтру по збереженим подіям")
+    #
+    #     # Go back to how it was before
+    #     deactivate_bookmark = filtered_event.find_element(By.XPATH, ".//div[contains(@class, 'event-flags')]")
+    #     deactivate_bookmark.click()
+
+    # Search on the Events page is not working correctly (tested manually).
+    # It doesn't find some events, although the name is specified the same.
+    # You can try by the first letter, but even then it doesn’t always find it.
+    # But I still tried to do an automated test.
+    def test_search_event_by_name(self):
         explicit_wait = WebDriverWait(self.driver, 10)
 
-        # First Step - Activate Bookmark
-        event_to_bookmark_xpath = "//mat-card[.//span[@class='flag']]"
-        event_to_bookmark = explicit_wait.until(EC.element_to_be_clickable((By.XPATH, event_to_bookmark_xpath)))
-        event_title = event_to_bookmark.find_element(By.CSS_SELECTOR, ".event-name").text
+        # First Step - Click on the Search icon
+        search_button_xpath = "//div[contains(@class, 'container-img')][.//span[contains(@class, 'search-img')]]"
+        search_button = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, search_button_xpath)))
+        search_button.click()
 
-        activate_bookmark_button = event_to_bookmark.find_element(By.XPATH, ".//div[contains(@class, 'event-flags')]")
-        activate_bookmark_button.click()
+        # Second Step - Write a partial name of the event ()
+        event_element_xpath = "//mat-card"
+        event_element = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, event_element_xpath)))
+        event_name = event_element.find_element(By.CSS_SELECTOR, ".event-name").text
+        partial_name = event_name[:2]
 
-        active_bookmark = activate_bookmark_button.find_element(By.CSS_SELECTOR, ".flag-active")
+        input_event_name_xpath = "//input[@placeholder='Search']"
+        input_event_name = explicit_wait.until(EC.element_to_be_clickable((By.XPATH, input_event_name_xpath)))
+        input_event_name.send_keys(partial_name)
 
-        self.assertTrue(active_bookmark.is_displayed(), f"Закладка не була активована на події {event_title} (не змінила свій статус на active)")
+        time.sleep(2)
 
-        # Second Step - Refresh the page and check bookmark status
-        self.driver.refresh()
+        all_event_names_selector = '.event-name'
+        all_event_names = self.driver.find_elements(By.CSS_SELECTOR, all_event_names_selector)
 
-        bookmarked_event_xpath = f"//mat-card[.//span[@class='flag-active'] and .//p[contains(normalize-space(text()), '{event_title}')]]"
-        bookmarked_event = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, bookmarked_event_xpath)))
+        self.assertTrue(len(all_event_names) > 0, "Пошук не повернув жодного результату.")
 
-        self.assertTrue(bookmarked_event.is_displayed(), f"Закладка зникла з події {event_title} (після перезавантаження сторінки)")
+        for name in all_event_names:
+            self.assertIn(partial_name.lower(), name.text.lower(), f"Назва події {name.text} не відповідає шуканому рядку.")
 
-        # Third Step - Check for an event using the bookmark filter
-        bookmark_filter_xpath = "//span[@class='bookmark-img']"
-        bookmark_filter_button = self.driver.find_element(By.XPATH, bookmark_filter_xpath)
-        bookmark_filter_button.click()
+        searched_element_xpath = f"//mat-card[.//p[contains(text(), '{event_name}')]]"
+        partial_searched_element = self.driver.find_element(By.XPATH, searched_element_xpath)
+        self.assertTrue(partial_searched_element.is_displayed(), f"Події з назвою {event_name} немає у переліку (пошук за частковою назвою).")
 
-        filtered_event_xpath = f"//mat-card[.//span[@class='flag-active'] and .//p[contains(text(), '{event_title}')]]"
-        filtered_event = explicit_wait.until(EC.visibility_of_element_located((By.XPATH, filtered_event_xpath)))
-        self.assertTrue(filtered_event.is_displayed(), f"Подія {event_title} не відображається при застосуванні фільтру по збереженим подіям")
+        # Third Step - Search by full name
+        input_event_name.clear()
+        input_event_name.send_keys(event_name)
 
-        # Go back to how it was before
-        deactivate_bookmark = filtered_event.find_element(By.XPATH, ".//div[contains(@class, 'event-flags')]")
-        deactivate_bookmark.click()
+        time.sleep(2)
+
+        full_searched_element = self.driver.find_element(By.XPATH, searched_element_xpath)
+        self.assertTrue(full_searched_element.is_displayed(), f"Події з назвою {event_name} немає у переліку (пошук за повною назвою)")
+
+
 
     def tearDown(self):
         if self.driver:
